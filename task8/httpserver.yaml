@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+        name: httpserver
+spec:
+        selector:
+                matchLabels:
+                        app: httpserver
+        replicas: 1
+        template:
+                metadata:
+                        labels:
+                                app: httpserver
+                spec:
+                        containers:
+                        - name: httpserver
+                          image: 569646632/task_3:v1.8
+                          env:
+                          - name: HTTPSERVERPORT
+                            valueFrom:
+                                    configMapKeyRef:
+                                            name: httpserver-configmap
+                                            key: HTTPSERVERPORT
+                          livenessProbe:
+                               httpGet:
+                                        path: /healthz
+                                        port: 8080
+                               initialDelaySeconds: 20
+                               timeoutSeconds: 3
+                          resources:
+                                  limits:
+                                          cpu: 500m
+                                          memory: 200Mi
+                                  requests:
+                                          cpu: 100m
+                                          memory: 50Mi
+                          lifecycle:
+                                  preStop:
+                                          exec:
+                                                  command: ["/bin/sh","-c","while killall -9 httpserver;do sleep 1;done"]
